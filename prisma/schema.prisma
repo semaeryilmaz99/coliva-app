@@ -1,0 +1,190 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String   @id @default(cuid())
+  name         String
+  email        String   @unique
+  password     String
+  phone        String?
+  role         Role     @default(TENANT)
+  roomNumber   String?
+  score        Int      @default(100)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  payments         Payment[]
+  announcements    Announcement[]
+  complaintsGiven  Complaint[]       @relation("ComplaintFrom")
+  complaintsAbout  Complaint[]       @relation("ComplaintAbout")
+  warnings         Warning[]
+  sentMessages     Message[]
+  events           Event[]
+  roommatePost     RoommatePost?
+  notifications    Notification[]
+  roomParticipants RoomParticipant[]
+}
+
+enum Role {
+  ADMIN
+  TENANT
+}
+
+model Payment {
+  id        String        @id @default(cuid())
+  userId    String
+  amount    Float
+  month     String
+  status    PaymentStatus @default(PENDING)
+  paidAt    DateTime?
+  createdAt DateTime      @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  OVERDUE
+}
+
+model Announcement {
+  id        String   @id @default(cuid())
+  title     String
+  content   String
+  authorId  String
+  createdAt DateTime @default(now())
+
+  author        User           @relation(fields: [authorId], references: [id])
+  notifications Notification[]
+}
+
+model Complaint {
+  id          String            @id @default(cuid())
+  title       String
+  description String
+  category    ComplaintCategory
+  status      ComplaintStatus   @default(OPEN)
+  isAnonymous Boolean           @default(false)
+  fromId      String
+  aboutId     String?
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+
+  from     User      @relation("ComplaintFrom", fields: [fromId], references: [id])
+  about    User?     @relation("ComplaintAbout", fields: [aboutId], references: [id])
+  warnings Warning[]
+}
+
+enum ComplaintCategory {
+  NOISE
+  CLEANLINESS
+  COMMON_AREA
+  OTHER
+}
+
+enum ComplaintStatus {
+  OPEN
+  IN_PROGRESS
+  RESOLVED
+}
+
+model Warning {
+  id          String   @id @default(cuid())
+  userId      String
+  complaintId String?
+  message     String
+  createdAt   DateTime @default(now())
+
+  user      User       @relation(fields: [userId], references: [id])
+  complaint Complaint? @relation(fields: [complaintId], references: [id])
+}
+
+model Room {
+  id        String   @id @default(cuid())
+  type      RoomType
+  createdAt DateTime @default(now())
+
+  messages     Message[]
+  participants RoomParticipant[]
+}
+
+model RoomParticipant {
+  id     String @id @default(cuid())
+  roomId String
+  userId String
+
+  room Room @relation(fields: [roomId], references: [id])
+  user User @relation(fields: [userId], references: [id])
+
+  @@unique([roomId, userId])
+}
+
+model Message {
+  id        String   @id @default(cuid())
+  content   String
+  senderId  String
+  roomId    String
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  sender User @relation(fields: [senderId], references: [id])
+  room   Room @relation(fields: [roomId], references: [id])
+}
+
+enum RoomType {
+  GROUP
+  DIRECT
+}
+
+model Event {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  date        DateTime
+  location    String?
+  authorId    String
+  createdAt   DateTime @default(now())
+
+  author User @relation(fields: [authorId], references: [id])
+}
+
+model RoommatePost {
+  id          String    @id @default(cuid())
+  userId      String    @unique
+  description String
+  budget      Float?
+  moveInDate  DateTime?
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+}
+
+model Notification {
+  id             String           @id @default(cuid())
+  userId         String
+  type           NotificationType
+  message        String
+  isRead         Boolean          @default(false)
+  announcementId String?
+  createdAt      DateTime         @default(now())
+
+  user         User          @relation(fields: [userId], references: [id])
+  announcement Announcement? @relation(fields: [announcementId], references: [id])
+}
+
+enum NotificationType {
+  ANNOUNCEMENT
+  PAYMENT_DUE
+  COMPLAINT
+  WARNING
+  EVENT
+  MESSAGE
+}
