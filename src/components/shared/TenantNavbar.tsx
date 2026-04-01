@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation"
 import { useAuth } from "@/features/auth/hooks/useAuth"
 
 // TenantNavbar — kiracı sayfalarında üstte görünen navigasyon.
-// activelik kontrolü için usePathname hook'u kullanılıyor.
+// Aktiflik kontrolü için usePathname hook'u kullanılıyor.
 // Hangi linkte olduğumuzu anlayıp aktif linki vurguluyoruz.
 
 const navLinks = [

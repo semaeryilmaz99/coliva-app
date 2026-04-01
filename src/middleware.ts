@@ -8,11 +8,12 @@ export async function middleware(request: NextRequest) {
     request.nextUrl.pathname.startsWith("/login") ||
     request.nextUrl.pathname.startsWith("/register")
 
+  // Login olmadan sadece login ile açılabilen sayfalara erişmeye çalışırsa logine yönlendirir
   if (!token) {
     if (isAuthPage) return NextResponse.next()
     return NextResponse.redirect(new URL("/login", request.url))
   }
-
+  // Token doğrulama yaparak user bilgilerini alır 
   const payload = await verifyToken(token)
 
   if (!payload) {
@@ -20,13 +21,16 @@ export async function middleware(request: NextRequest) {
     response.cookies.set("token", "", { maxAge: 0 })
     return response
   }
-
+  
+  // Ve role göre erişim kontrolü yapar. Admin olmayan userların admin sayfasına erişimini engeller.
   if (
     request.nextUrl.pathname.startsWith("/admin") &&
     payload.role !== "ADMIN"
   ) {
     return NextResponse.redirect(new URL("/home", request.url))
   }
+
+  // Normal user ise home sayfasına yönlendirir. Admin ise admin dashboard'a yönlendirir.
 
   if (isAuthPage) {
     const redirectUrl =
@@ -36,6 +40,8 @@ export async function middleware(request: NextRequest) {
 
   return NextResponse.next()
 }
+
+// Middleware'in hangi yolları koruyacağını belirler. Belirtilen yollar dışında kalan sayfalara admin/kiracı ayrımı olmadan herkes erişebilir. 
 
 export const config = {
   matcher: [

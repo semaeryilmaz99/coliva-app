@@ -6,8 +6,7 @@ import { LoginInput } from "../validations/auth.schema"
 
 // LoginForm component'ı sadece UI'dan sorumludur.
 // Business logic yok — sadece formu göster, veriyi useAuth'a ilet.
-// Bu sayede form tasarımını değiştirmek istersen sadece burayı değiştirirsin,
-// auth logic'e dokunman gerekmez. (Single Responsibility)
+// Form tasarımını değiştirmek istersen sadece burayı değiştirirsin, auth logic'e dokunman gerekmiyor. (Single Responsibility)
 
 export function LoginForm() {
   const { login, isLoading } = useAuth()
