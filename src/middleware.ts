@@ -52,6 +52,8 @@ export const config = {
     "/community/:path*",
     "/chat/:path*",
     "/login",
-    "/register",
+    "/register"
   ],
 }
+
+// Yetki kontrolüne göre yönlendirme kısmının bitişi
